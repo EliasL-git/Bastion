@@ -1,13 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -30,13 +28,13 @@ import {
   Tooltip as ReTooltip, ResponsiveContainer, BarChart, Bar, Cell,
 } from "recharts";
 
-const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+export const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-interface ChartPoint { time: string; allowed: number; blocked: number }
-interface TopClient { clientIp: string; total: number; blockedCount: number; allowedCount: number }
-interface QueryTypeDist { type: string; count: number }
+export interface ChartPoint { time: string; allowed: number; blocked: number }
+export interface TopClient { clientIp: string; total: number; blockedCount: number; allowedCount: number }
+export interface QueryTypeDist { type: string; count: number }
 
-interface Stats {
+export interface Stats {
   totalQueries: number; blockedCount: number; allowedCount: number;
   queriesLastHour: number; uniqueClients: number; blockPercent: number;
   enabledLists: number; totalLists: number; blockingEnabled: boolean;
@@ -45,18 +43,18 @@ interface Stats {
   chartData: ChartPoint[]; range: string;
 }
 
-interface QueryEntry { id: string; domain: string; clientIp: string; queryType: string; status: string; list: string | null; createdAt: string }
-interface BlocklistEntry { id: string; name: string; enabled: boolean; source: string | null; entryCount: number }
-interface AllowlistEntry { id: string; domain: string; note: string | null }
-interface ResolverStatus { running: boolean; pid: string | null; port: number; status: string }
+export interface QueryEntry { id: string; domain: string; clientIp: string; queryType: string; status: string; list: string | null; createdAt: string }
+export interface BlocklistEntry { id: string; name: string; enabled: boolean; source: string | null; entryCount: number }
+export interface AllowlistEntry { id: string; domain: string; note: string | null }
+export interface ResolverStatus { running: boolean; pid: string | null; port: number; status: string }
 
-function formatNumber(n: number): string {
+export function formatNumber(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return n.toString();
 }
 
-function timeAgo(dateStr: string): string {
+export function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
@@ -66,18 +64,18 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-function extractDomain(full: string): string {
+export function extractDomain(full: string): string {
   const parts = full.split(".");
   if (parts.length > 2) return parts.slice(-2).join(".");
   return full;
 }
 
-function csvEscape(val: string): string {
+export function csvEscape(val: string): string {
   if (val.includes(",") || val.includes('"') || val.includes("\n")) return `"${val.replace(/"/g, '""')}"`;
   return val;
 }
 
-function StatCard({ title, value, sub, icon: Icon }: {
+export function StatCard({ title, value, sub, icon: Icon }: {
   title: string; value: string | number; sub?: string; icon: React.ElementType;
 }) {
   return (
@@ -98,7 +96,7 @@ function StatCard({ title, value, sub, icon: Icon }: {
   );
 }
 
-function QueryLog({ refreshInterval }: { refreshInterval: number }) {
+export function QueryLog({ refreshInterval }: { refreshInterval: number }) {
   const [queries, setQueries] = useState<QueryEntry[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -228,7 +226,7 @@ function QueryLog({ refreshInterval }: { refreshInterval: number }) {
   );
 }
 
-function TopDomains({ data }: { data: { blocked: { domain: string; count: number }[]; allowed: { domain: string; count: number }[] } | null }) {
+export function TopDomains({ data }: { data: { blocked: { domain: string; count: number }[]; allowed: { domain: string; count: number }[] } | null }) {
   if (!data) return null;
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -268,7 +266,7 @@ function TopDomains({ data }: { data: { blocked: { domain: string; count: number
   );
 }
 
-function ClientInsights({ clients }: { clients: TopClient[] }) {
+export function ClientInsights({ clients }: { clients: TopClient[] }) {
   if (!clients || clients.length === 0) return null;
   const maxTotal = Math.max(...clients.map(c => c.total));
   return (
@@ -298,7 +296,7 @@ function ClientInsights({ clients }: { clients: TopClient[] }) {
   );
 }
 
-function QueryTypeChart({ data }: { data: QueryTypeDist[] }) {
+export function QueryTypeChart({ data }: { data: QueryTypeDist[] }) {
   if (!data || data.length === 0) return null;
   return (
     <Card>
@@ -324,7 +322,7 @@ function QueryTypeChart({ data }: { data: QueryTypeDist[] }) {
   );
 }
 
-function BlocklistsTab() {
+export function BlocklistsTab() {
   const [lists, setLists] = useState<BlocklistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [editId, setEditId] = useState<string | null>(null);
@@ -448,7 +446,7 @@ function BlocklistsTab() {
   );
 }
 
-function AllowlistTab() {
+export function AllowlistTab() {
   const [entries, setEntries] = useState<AllowlistEntry[]>([]);
   const [newDomain, setNewDomain] = useState("");
   const [newNote, setNewNote] = useState("");
@@ -502,141 +500,13 @@ function AllowlistTab() {
   );
 }
 
-function CaInstallGuide({ serverIp }: { serverIp: string }) {
-  const [platform, setPlatform] = useState("windows");
-
-  const guides: Record<string, { icon: React.ElementType; title: string; steps: string[] }> = {
-    windows: {
-      icon: Monitor,
-      title: "Windows",
-      steps: [
-        `Download bastion-root-ca.crt from the CA card above`,
-        `Method 1 — Right-click the .crt file → Install Certificate:`,
-        `  a. Select "Local Machine" → Next`,
-        `  b. Choose "Place all certificates in the following store" → Browse`,
-        `  c. Select "Trusted Root Certification Authorities" → OK → Finish`,
-        `  d. Click Yes on the security warning`,
-        `Method 2 — Using certlm.msc (if method 1 fails):`,
-        `  a. Press Win+R, type certlm.msc → Enter`,
-        `  b. Expand "Trusted Root Certification Authorities" → Certificates`,
-        `  c. Right-click → All Tasks → Import → Next`,
-        `  d. Browse to bastion-root-ca.crt → Next → Finish`,
-        `Method 3 — PowerShell (one-liner, run as Admin):`,
-        `  Import-Certificate -FilePath "$env:USERPROFILE\\Downloads\\bastion-root-ca.crt" -CertStoreLocation Cert:\\LocalMachine\\Root`,
-        `Close and reopen all browser windows`,
-        `The CA is now trusted — blocked HTTPS sites redirect without warnings`,
-      ],
-    },
-    macos: {
-      icon: Laptop,
-      title: "macOS",
-      steps: [
-        `Download bastion-root-ca.crt from the CA card above`,
-        `Double-click the .crt file in Downloads → Keychain Access opens`,
-        `Locate "Bastion Root CA" in the login keychain list`,
-        `Double-click the certificate → expand the Trust section`,
-        `Set "When using this certificate" to "Always Trust"`,
-        `Close the window → enter your password to save`,
-        `The CA is now trusted — restart your browser`,
-      ],
-    },
-    linux: {
-      icon: Monitor,
-      title: "Linux",
-      steps: [
-        `Download bastion-root-ca.crt from the CA card above`,
-        `System-wide install (requires sudo):`,
-        `  sudo cp ~/Downloads/bastion-root-ca.crt /usr/local/share/ca-certificates/`,
-        `  sudo update-ca-certificates`,
-        `Firefox (uses its own store):`,
-        `  Preferences → Privacy & Security → Certificates → View Certificates`,
-        `  Authorities → Import → select .crt`,
-        `  Check "Trust this CA to identify websites" → OK`,
-        `Chrome/Chromium (uses system store on most distros):`,
-        `  If it still warns: Settings → Privacy & Security → Security`,
-        `  Manage certificates → Authorities → Import`,
-        `Restart your browser after installing`,
-      ],
-    },
-    android: {
-      icon: Smartphone,
-      title: "Android",
-      steps: [
-        `Download bastion-root-ca.crt on your device`,
-        `Open Settings → Security → Encryption & credentials`,
-        `Tap "Install a certificate" → "CA certificate"`,
-        `Navigate to Downloads and select bastion-root-ca.crt`,
-        `Tap "Install anyway" on the warning → enter your PIN`,
-        `The CA is trusted for apps targeting Android 7+`,
-        `Restart Chrome if it's open`,
-      ],
-    },
-    ios: {
-      icon: Smartphone,
-      title: "iOS / iPadOS",
-      steps: [
-        `Download bastion-root-ca.crt using Safari on your device`,
-        `Go to Settings → General → VPN & Device Management`,
-        `Tap the "Bastion Root CA" profile → Install (enter passcode)`,
-        `Then go to Settings → General → About → Certificate Trust Settings`,
-        `Enable the toggle next to "Bastion Root CA"`,
-        `The CA is now trusted system-wide on iOS`,
-      ],
-    },
-  };
-
-  const current = guides[platform];
-  const Icon = current.icon;
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5"><Shield className="h-3.5 w-3.5" /> Install Guide</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Shield className="h-4 w-4" /> Install CA Certificate</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Install the Bastion Root CA on each device so that blocked HTTPS sites redirect
-            without browser security warnings.
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            {Object.entries(guides).map(([key, g]) => {
-              const GIcon = g.icon;
-              return (
-                <Button key={key} variant={platform === key ? "default" : "outline"} size="sm" onClick={() => setPlatform(key)} className="gap-1.5">
-                  <GIcon className="h-3.5 w-3.5" />{g.title}
-                </Button>
-              );
-            })}
-          </div>
-          <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-2">
-            <p className="text-sm font-semibold flex items-center gap-2"><Icon className="h-4 w-4" />{current.title}</p>
-            <ol className="space-y-1.5">
-              {current.steps.map((step, i) => (
-                <li key={i} className="text-xs text-muted-foreground flex gap-2">
-                  <span className="text-foreground font-medium shrink-0">{i + 1}.</span>
-                  <span>{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }) {
+export function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }) {
   const [platform, setPlatform] = useState("windows");
   const IP = serverIp || "localhost";
 
   const guides: Record<string, { icon: React.ElementType; title: string; steps: string[]; note?: string }> = {
     windows: {
-      icon: Monitor,
-      title: "Windows",
+      icon: Monitor, title: "Windows",
       steps: [
         `Open Control Panel → Network and Sharing Center → Change adapter settings`,
         `Right-click your network connection → Properties`,
@@ -650,8 +520,7 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
       note: "Changes take effect immediately. No restart required.",
     },
     macos: {
-      icon: Laptop,
-      title: "macOS",
+      icon: Laptop, title: "macOS",
       steps: [
         `Open System Settings → Network`,
         `Select your active connection (Wi-Fi or Ethernet) → Details`,
@@ -663,8 +532,7 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
       note: "You may need to flush DNS cache: sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder",
     },
     linux: {
-      icon: Monitor,
-      title: "Linux",
+      icon: Monitor, title: "Linux",
       steps: [
         `Edit /etc/resolv.conf with sudo: sudo nano /etc/resolv.conf`,
         `Replace contents with:`,
@@ -677,8 +545,7 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
       note: "Changes via resolv.conf may be overwritten by NetworkManager or systemd-resolved on reboot.",
     },
     router: {
-      icon: Wifi,
-      title: "Router",
+      icon: Wifi, title: "Router",
       steps: [
         `Open your router's admin panel (usually http://192.168.1.1 or http://192.168.0.1)`,
         `Find the DHCP or LAN settings section`,
@@ -691,8 +558,7 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
       note: "Setting DNS at the router level will apply Bastion to ALL devices on your network automatically.",
     },
     android: {
-      icon: Smartphone,
-      title: "Android",
+      icon: Smartphone, title: "Android",
       steps: [
         `Open Settings → Wi-Fi`,
         `Long-press your connected network → Modify Network`,
@@ -705,8 +571,7 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
       note: "Some Android versions use Private DNS (DNS over TLS) which bypasses manual DNS. Disable Private DNS in Settings → Connections → More connection settings.",
     },
     ios: {
-      icon: Smartphone,
-      title: "iOS / iPadOS",
+      icon: Smartphone, title: "iOS / iPadOS",
       steps: [
         `Open Settings → Wi-Fi`,
         `Tap the (i) icon next to your connected network`,
@@ -766,7 +631,129 @@ function SetupGuideDialog({ serverIp, port }: { serverIp: string; port: number }
   );
 }
 
-function SettingsTab({ settings, onToggle, onUpdateSetting, resolver, serverIp }: {
+export function CaInstallGuide({ serverIp }: { serverIp: string }) {
+  const [platform, setPlatform] = useState("windows");
+
+  const guides: Record<string, { icon: React.ElementType; title: string; steps: string[] }> = {
+    windows: {
+      icon: Monitor, title: "Windows",
+      steps: [
+        `Download bastion-root-ca.crt from the CA card above`,
+        `Method 1 — Right-click the .crt file → Install Certificate:`,
+        `  a. Select "Local Machine" → Next`,
+        `  b. Choose "Place all certificates in the following store" → Browse`,
+        `  c. Select "Trusted Root Certification Authorities" → OK → Finish`,
+        `  d. Click Yes on the security warning`,
+        `Method 2 — Using certlm.msc (if method 1 fails):`,
+        `  a. Press Win+R, type certlm.msc → Enter`,
+        `  b. Expand "Trusted Root Certification Authorities" → Certificates`,
+        `  c. Right-click → All Tasks → Import → Next`,
+        `  d. Browse to bastion-root-ca.crt → Next → Finish`,
+        `Method 3 — PowerShell (one-liner, run as Admin):`,
+        `  Import-Certificate -FilePath "$env:USERPROFILE\\Downloads\\bastion-root-ca.crt" -CertStoreLocation Cert:\\LocalMachine\\Root`,
+        `Close and reopen all browser windows`,
+        `The CA is now trusted — blocked HTTPS sites redirect without warnings`,
+      ],
+    },
+    macos: {
+      icon: Laptop, title: "macOS",
+      steps: [
+        `Download bastion-root-ca.crt from the CA card above`,
+        `Double-click the .crt file in Downloads → Keychain Access opens`,
+        `Locate "Bastion Root CA" in the login keychain list`,
+        `Double-click the certificate → expand the Trust section`,
+        `Set "When using this certificate" to "Always Trust"`,
+        `Close the window → enter your password to save`,
+        `The CA is now trusted — restart your browser`,
+      ],
+    },
+    linux: {
+      icon: Monitor, title: "Linux",
+      steps: [
+        `Download bastion-root-ca.crt from the CA card above`,
+        `System-wide install (requires sudo):`,
+        `  sudo cp ~/Downloads/bastion-root-ca.crt /usr/local/share/ca-certificates/`,
+        `  sudo update-ca-certificates`,
+        `Firefox (uses its own store):`,
+        `  Preferences → Privacy & Security → Certificates → View Certificates`,
+        `  Authorities → Import → select .crt`,
+        `  Check "Trust this CA to identify websites" → OK`,
+        `Chrome/Chromium (uses system store on most distros):`,
+        `  If it still warns: Settings → Privacy & Security → Security`,
+        `  Manage certificates → Authorities → Import`,
+        `Restart your browser after installing`,
+      ],
+    },
+    android: {
+      icon: Smartphone, title: "Android",
+      steps: [
+        `Download bastion-root-ca.crt on your device`,
+        `Open Settings → Security → Encryption & credentials`,
+        `Tap "Install a certificate" → "CA certificate"`,
+        `Navigate to Downloads and select bastion-root-ca.crt`,
+        `Tap "Install anyway" on the warning → enter your PIN`,
+        `The CA is trusted for apps targeting Android 7+`,
+        `Restart Chrome if it's open`,
+      ],
+    },
+    ios: {
+      icon: Smartphone, title: "iOS / iPadOS",
+      steps: [
+        `Download bastion-root-ca.crt using Safari on your device`,
+        `Go to Settings → General → VPN & Device Management`,
+        `Tap the "Bastion Root CA" profile → Install (enter passcode)`,
+        `Then go to Settings → General → About → Certificate Trust Settings`,
+        `Enable the toggle next to "Bastion Root CA"`,
+        `The CA is now trusted system-wide on iOS`,
+      ],
+    },
+  };
+
+  const current = guides[platform];
+  const Icon = current.icon;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5"><Shield className="h-3.5 w-3.5" /> Install Guide</Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Shield className="h-4 w-4" /> Install CA Certificate</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Install the Bastion Root CA on each device so that blocked HTTPS sites redirect
+            without browser security warnings.
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {Object.entries(guides).map(([key, g]) => {
+              const GIcon = g.icon;
+              return (
+                <Button key={key} variant={platform === key ? "default" : "outline"} size="sm" onClick={() => setPlatform(key)} className="gap-1.5">
+                  <GIcon className="h-3.5 w-3.5" />{g.title}
+                </Button>
+              );
+            })}
+          </div>
+          <div className="rounded-lg bg-muted/30 border border-border p-4 space-y-2">
+            <p className="text-sm font-semibold flex items-center gap-2"><Icon className="h-4 w-4" />{current.title}</p>
+            <ol className="space-y-1.5">
+              {current.steps.map((step, i) => (
+                <li key={i} className="text-xs text-muted-foreground flex gap-2">
+                  <span className="text-foreground font-medium shrink-0">{i + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function SettingsTab({ settings, onToggle, onUpdateSetting, resolver, serverIp }: {
   settings: Record<string, string>; onToggle: (k: string, v: boolean) => void; onUpdateSetting: (k: string, v: string) => void; resolver: ResolverStatus | null; serverIp: string;
 }) {
   const blockingEnabled = settings.blocking_enabled === "true";
@@ -829,24 +816,24 @@ function SettingsTab({ settings, onToggle, onUpdateSetting, resolver, serverIp }
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2"><Radio className="h-4 w-4" />DNS Resolver</CardTitle>
         </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium">Status</p>
-                <p className="text-xs text-muted-foreground">{resolver?.running ? `Running on UDP :${resolver.port}` : "Not running"}</p>
-              </div>
-              <Badge variant={resolver?.running ? "default" : "secondary"} className="text-[10px]">{resolver?.running ? "Active" : "Stopped"}</Badge>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">Status</p>
+              <p className="text-xs text-muted-foreground">{resolver?.running ? `Running on UDP :${resolver.port}` : "Not running"}</p>
             </div>
-            <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-2">
-              <p className="text-muted-foreground">The built-in DNS proxy starts automatically with Bastion.</p>
-              <p className="text-muted-foreground">
-                Point your device/router DNS to <span className="font-mono font-medium text-foreground">{serverIp}:{dnsPort}</span>.
-              </p>
-              <div className="pt-1">
-                <SetupGuideDialog serverIp={serverIp} port={dnsPort} />
-              </div>
+            <Badge variant={resolver?.running ? "default" : "secondary"} className="text-[10px]">{resolver?.running ? "Active" : "Stopped"}</Badge>
+          </div>
+          <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-2">
+            <p className="text-muted-foreground">The built-in DNS proxy starts automatically with Bastion.</p>
+            <p className="text-muted-foreground">
+              Point your device/router DNS to <span className="font-mono font-medium text-foreground">{serverIp}:{dnsPort}</span>.
+            </p>
+            <div className="pt-1">
+              <SetupGuideDialog serverIp={serverIp} port={dnsPort} />
             </div>
-          </CardContent>
+          </div>
+        </CardContent>
       </Card>
 
       <Card>
@@ -934,239 +921,5 @@ function SettingsTab({ settings, onToggle, onUpdateSetting, resolver, serverIp }
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-export default function BastionDashboard() {
-  const router = useRouter();
-  const [authenticated, setAuthenticated] = useState(false);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [topDomains, setTopDomains] = useState<{ blocked: { domain: string; count: number }[]; allowed: { domain: string; count: number }[] } | null>(null);
-  const [settings, setSettings] = useState<Record<string, string>>({});
-  const [resolver, setResolver] = useState<ResolverStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [range, setRange] = useState("24h");
-  const [refreshInterval, setRefreshInterval] = useState(0);
-  const [serverIp, setServerIp] = useState("localhost");
-
-  const fetchResolver = useCallback(async () => {
-    try { const res = await fetch("/api/bastion/resolver"); setResolver(await res.json()); } catch { setResolver(null); }
-  }, []);
-
-  const fetchAll = useCallback(async () => {
-    const [statsRes, topRes, settingsRes] = await Promise.all([
-      fetch(`/api/bastion/stats?range=${range}`), fetch("/api/bastion/top-domains"), fetch("/api/bastion/settings"),
-    ]);
-    setStats(await statsRes.json()); setTopDomains(await topRes.json()); setSettings(await settingsRes.json());
-    setLoading(false);
-  }, [range]);
-
-  const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  useEffect(() => {
-    if (refreshInterval <= 0) { if (autoRefreshRef.current) { clearInterval(autoRefreshRef.current); autoRefreshRef.current = null; } return; }
-    autoRefreshRef.current = setInterval(() => { fetchAll(); fetchResolver(); }, refreshInterval);
-    return () => { if (autoRefreshRef.current) clearInterval(autoRefreshRef.current); };
-  }, [refreshInterval, fetchAll, fetchResolver]);
-
-  useEffect(() => {
-    let mounted = true;
-    let resolverInterval: ReturnType<typeof setInterval> | undefined;
-    const init = async () => {
-      const authRes = await fetch("/api/bastion/auth/me");
-      if (!authRes.ok) { router.push("/login"); return; }
-      const authData = await authRes.json();
-      if (!authData.passwordChanged) { router.push("/change-password"); return; }
-      if (mounted) setAuthenticated(true);
-      if (mounted) {
-        try { const h = await fetch("/api/bastion/hostname"); const d = await h.json(); setServerIp(d.ip); } catch {}
-        await Promise.all([fetchAll(), fetchResolver()]); resolverInterval = setInterval(() => { if (mounted) fetchResolver(); }, 10000);
-      }
-    };
-    init();
-    return () => { mounted = false; if (resolverInterval) clearInterval(resolverInterval); };
-  }, [fetchAll, fetchResolver, router]);
-
-  const handleToggle = async (key: string, value: boolean) => {
-    await fetch("/api/bastion/toggle", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, value }) });
-    setSettings((prev) => ({ ...prev, [key]: String(value) }));
-  };
-
-  const handleUpdateSetting = async (key: string, value: string) => {
-    await fetch("/api/bastion/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ key, value }) });
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Shield className="h-8 w-8 mx-auto text-primary animate-pulse" />
-          <p className="text-sm text-muted-foreground">Loading Bastion...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-background flex flex-col">
-        <header className="border-b border-border/50 bg-card/50 backdrop-blur-md sticky top-0 z-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Shield className="h-5 w-5 text-primary" />
-                <span className="font-bold text-lg tracking-tight">Bastion</span>
-              </div>
-              <Badge variant="outline" className="text-[10px] hidden sm:inline-flex">DNS Sinkhole</Badge>
-            </div>
-            <div className="flex items-center gap-2">
-              {resolver && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5">
-                      <Radio className={`h-3.5 w-3.5 ${resolver.running ? "text-emerald-500" : "text-muted-foreground/50"}`} />
-                      <span className={`text-[10px] font-medium hidden md:inline ${resolver.running ? "text-emerald-600" : "text-muted-foreground"}`}>
-                        DNS :{resolver.port} {resolver.running ? "Active" : "Stopped"}
-                      </span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{resolver.running ? `Resolver running (PID ${resolver.pid})` : "DNS resolver is not running"}</TooltipContent>
-                </Tooltip>
-              )}
-              {stats && (
-                <div className="flex items-center gap-1.5">
-                  <div className={`h-2 w-2 rounded-full ${stats.blockingEnabled ? "bg-emerald-500" : "bg-red-500"}`} />
-                  <span className="text-[10px] text-muted-foreground hidden sm:inline">{stats.blockingEnabled ? "Protected" : "Disabled"}</span>
-                </div>
-              )}
-              <select value={refreshInterval} onChange={(e) => setRefreshInterval(Number(e.target.value))}
-                className="h-8 text-[10px] bg-muted/50 border border-border rounded px-1.5 outline-none cursor-pointer">
-                <option value={0}>Auto-refresh: Off</option>
-                <option value={5000}>5s</option>
-                <option value={10000}>10s</option>
-                <option value={30000}>30s</option>
-                <option value={60000}>60s</option>
-              </select>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => { fetchAll(); fetchResolver(); }}>
-                <RefreshCw className="h-3 w-3" />
-              </Button>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground" onClick={async () => { await fetch("/api/bastion/auth/logout", { method: "POST" }); router.push("/login"); }}>
-                    <LogOut className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Sign out</TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
-        </header>
-
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 space-y-6">
-          {stats && (
-            <>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <StatCard title="Total Queries" value={formatNumber(stats.totalQueries)} sub={`${formatNumber(stats.queriesLastHour)}/hour`} icon={Activity} />
-                <StatCard title="Blocked" value={formatNumber(stats.blockedCount)} sub={`${stats.blockPercent}% of traffic`} icon={Ban} />
-                <StatCard title="Allowed" value={formatNumber(stats.allowedCount)} sub={`${formatNumber(stats.uniqueClients)} unique clients`} icon={CheckCircle2} />
-                <StatCard title="Blocklists" value={`${stats.enabledLists}/${stats.totalLists}`} sub="Active lists" icon={Shield} />
-              </div>
-
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-medium text-muted-foreground">Blocking Rate ({range})</span>
-                      <span className="text-sm font-bold tabular-nums">{stats.blockPercent}%</span>
-                    </div>
-                    <div className="flex rounded-md border border-border overflow-hidden text-xs">
-                      {(["24h", "7d"] as const).map((r) => (
-                        <button key={r} onClick={() => setRange(r)}
-                          className={`px-3 py-1.5 font-medium transition-colors ${
-                            range === r ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted text-muted-foreground"
-                          }`}>{r === "24h" ? "24 Hours" : "7 Days"}</button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full transition-all duration-1000" style={{ width: `${Math.min(stats.blockPercent, 100)}%` }} />
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="bg-muted/50">
-              <TabsTrigger value="overview" className="gap-1.5 text-xs sm:text-sm"><TrendingUp className="h-3.5 w-3.5" />Overview</TabsTrigger>
-              <TabsTrigger value="queries" className="gap-1.5 text-xs sm:text-sm"><Clock className="h-3.5 w-3.5" />Query Log</TabsTrigger>
-              <TabsTrigger value="blocklists" className="gap-1.5 text-xs sm:text-sm"><ShieldOff className="h-3.5 w-3.5" />Blocklists</TabsTrigger>
-              <TabsTrigger value="allowlist" className="gap-1.5 text-xs sm:text-sm"><Eye className="h-3.5 w-3.5" />Allowlist</TabsTrigger>
-              <TabsTrigger value="settings" className="gap-1.5 text-xs sm:text-sm"><Settings className="h-3.5 w-3.5" />Settings</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="overview" className="space-y-6 mt-6">
-              {stats && stats.chartData.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                      DNS Queries ({range === "7d" ? "Last 7 Days" : "Last 24 Hours"})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[280px] w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={stats.chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="fillAllowed" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="100%" stopColor="#3b82f6" stopOpacity={0.02} />
-                            </linearGradient>
-                            <linearGradient id="fillBlocked" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.3} /><stop offset="100%" stopColor="#ef4444" stopOpacity={0.02} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                          <XAxis dataKey="time" tick={{ fontSize: 10 }} className="text-muted-foreground" interval="preserveStartEnd" />
-                          <YAxis tick={{ fontSize: 10 }} className="text-muted-foreground" />
-                          <ReTooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px" }} />
-                          <Area type="monotone" dataKey="allowed" stroke="#3b82f6" fill="url(#fillAllowed)" strokeWidth={2} />
-                          <Area type="monotone" dataKey="blocked" stroke="#ef4444" fill="url(#fillBlocked)" strokeWidth={2} />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-                    <div className="flex items-center justify-center gap-6 mt-3">
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><div className="h-2.5 w-2.5 rounded-full bg-blue-500" />Allowed</div>
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground"><div className="h-2.5 w-2.5 rounded-full bg-red-500" />Blocked</div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2"><TopDomains data={topDomains} /></div>
-                <div className="space-y-4">
-                  {stats && <ClientInsights clients={stats.topClients} />}
-                  {stats && <QueryTypeChart data={stats.queryTypeDistribution} />}
-                </div>
-              </div>
-            </TabsContent>
-
-            <TabsContent value="queries" className="mt-6"><QueryLog refreshInterval={refreshInterval} /></TabsContent>
-            <TabsContent value="blocklists" className="mt-6"><BlocklistsTab /></TabsContent>
-            <TabsContent value="allowlist" className="mt-6"><AllowlistTab /></TabsContent>
-            <TabsContent value="settings" className="mt-6"><SettingsTab settings={settings} onToggle={handleToggle} onUpdateSetting={handleUpdateSetting} resolver={resolver} serverIp={serverIp} /></TabsContent>
-          </Tabs>
-        </main>
-
-        <footer className="border-t border-border/50 bg-card/30 mt-auto">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between text-xs text-muted-foreground">
-            <span className="flex items-center gap-1.5"><Shield className="h-3 w-3" />Bastion DNS Sinkhole</span>
-            <span>Network-wide ad blocking</span>
-          </div>
-        </footer>
-      </div>
-    </TooltipProvider>
   );
 }
