@@ -15,7 +15,7 @@ import {
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
+  import {
   Shield, ShieldOff, Activity, Eye, Globe, Ban,
   TrendingUp, Clock, Server, Plus, Trash2, RefreshCw,
   Settings, Search, ChevronLeft, ChevronRight, ExternalLink,
@@ -330,7 +330,9 @@ export function BlocklistsTab() {
   const [editName, setEditName] = useState("");
   const [addOpen, setAddOpen] = useState(false);
   const [newName, setNewName] = useState("");
+  const [newSource, setNewSource] = useState("");
   const [newEntries, setNewEntries] = useState("");
+  const [refreshing, setRefreshing] = useState<string | null>(null);
 
   const fetchLists = useCallback(async () => {
     setLoading(true);
@@ -359,8 +361,8 @@ export function BlocklistsTab() {
 
   const addList = async () => {
     if (!newName || !newEntries) return;
-    await fetch("/api/bastion/blocklists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newName, entries: newEntries }) });
-    setNewName(""); setNewEntries(""); setAddOpen(false);
+    await fetch("/api/bastion/blocklists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newName, source: newSource || "custom", entries: newEntries }) });
+    setNewName(""); setNewSource(""); setNewEntries(""); setAddOpen(false);
     fetchLists();
   };
 
@@ -378,6 +380,15 @@ export function BlocklistsTab() {
     a.click(); URL.revokeObjectURL(url);
   };
 
+  const refreshList = async (id: string) => {
+    setRefreshing(id);
+    try {
+      await fetch(`/api/bastion/blocklists/${id}`, { method: "POST" });
+    } catch {}
+    setRefreshing(null);
+    fetchLists();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -389,7 +400,8 @@ export function BlocklistsTab() {
           <DialogContent>
             <DialogHeader><DialogTitle>Add Blocklist</DialogTitle></DialogHeader>
             <div className="space-y-4 py-2">
-              <div className="space-y-2"><Label>List Name</Label><Input placeholder="e.g. My Custom Blocklist" value={newName} onChange={(e) => setNewName(e.target.value)} /></div>
+              <div className="space-y-2"><Label>List Name</Label><Input placeholder="e.g. OISD Big" value={newName} onChange={(e) => setNewName(e.target.value)} /></div>
+              <div className="space-y-2"><Label>Source URL (optional)</Label><Input placeholder="https://big.oisd.nl/domains" value={newSource} onChange={(e) => setNewSource(e.target.value)} className="font-mono text-xs" /></div>
               <div className="space-y-2"><Label>Domains (one per line)</Label><Textarea rows={8} placeholder={"ad.example.com\ntracker.example.net"} value={newEntries} onChange={(e) => setNewEntries(e.target.value)} className="font-mono text-xs" /></div>
             </div>
             <DialogFooter>
@@ -430,6 +442,16 @@ export function BlocklistsTab() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
+                      {list.source && list.source !== "custom" && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => refreshList(list.id)} disabled={refreshing === list.id}>
+                              <RefreshCw className={`h-3.5 w-3.5 ${refreshing === list.id ? "animate-spin" : ""}`} />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Refresh from source</TooltipContent>
+                        </Tooltip>
+                      )}
                       <Badge variant={list.enabled ? "default" : "secondary"} className="text-[10px]">{list.enabled ? "Active" : "Disabled"}</Badge>
                       <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => startEdit(list.id)}><PenLine className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Edit</TooltipContent></Tooltip>
                       <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => downloadList(list)}><Download className="h-3.5 w-3.5" /></Button></TooltipTrigger><TooltipContent>Download</TooltipContent></Tooltip>
@@ -917,7 +939,6 @@ export function SettingsTab({ settings, onToggle, onUpdateSetting, resolver, ser
         <CardContent className="space-y-2 text-sm">
           <div className="flex justify-between"><span className="text-muted-foreground">Engine</span><span className="font-mono">Bastion DNS</span></div>
           <div className="flex justify-between"><span className="text-muted-foreground">Version</span><span className="font-mono">0.1.0</span></div>
-          <div className="flex justify-between"><span className="text-muted-foreground">Platform</span><span className="font-mono">React / Next.js</span></div>
         </CardContent>
       </Card>
     </div>
