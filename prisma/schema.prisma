@@ -1,0 +1,43 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DnsQuery {
+  id        String   @id @default(cuid())
+  domain    String
+  clientIp  String
+  queryType String   @default("A")
+  status    String   @default("allowed") // "allowed" | "blocked"
+  list      String?  // which list matched (if blocked)
+  createdAt DateTime @default(now())
+
+  @@index([domain])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Blocklist {
+  id        String   @id @default(cuid())
+  name      String
+  enabled   Boolean  @default(true)
+  source    String?  // URL or "custom"
+  entries   String   // newline-separated domains stored as single string
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Setting {
+  key   String @id
+  value String
+}
+
+model Allowlist {
+  id   String @id @default(cuid())
+  domain String @unique
+  note  String?
+}
