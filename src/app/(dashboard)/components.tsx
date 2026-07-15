@@ -360,8 +360,12 @@ export function BlocklistsTab() {
   };
 
   const addList = async () => {
-    if (!newName || !newEntries) return;
-    await fetch("/api/bastion/blocklists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: newName, source: newSource || "custom", entries: newEntries }) });
+    if (!newName) return;
+    await fetch("/api/bastion/blocklists", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newName, source: newSource || "custom", entries: newEntries }),
+    });
     setNewName(""); setNewSource(""); setNewEntries(""); setAddOpen(false);
     fetchLists();
   };
@@ -401,8 +405,11 @@ export function BlocklistsTab() {
             <DialogHeader><DialogTitle>Add Blocklist</DialogTitle></DialogHeader>
             <div className="space-y-4 py-2">
               <div className="space-y-2"><Label>List Name</Label><Input placeholder="e.g. OISD Big" value={newName} onChange={(e) => setNewName(e.target.value)} /></div>
-              <div className="space-y-2"><Label>Source URL (optional)</Label><Input placeholder="https://big.oisd.nl/domains" value={newSource} onChange={(e) => setNewSource(e.target.value)} className="font-mono text-xs" /></div>
-              <div className="space-y-2"><Label>Domains (one per line)</Label><Textarea rows={8} placeholder={"ad.example.com\ntracker.example.net"} value={newEntries} onChange={(e) => setNewEntries(e.target.value)} className="font-mono text-xs" /></div>
+              <div className="space-y-2"><Label>Source URL <span className="text-muted-foreground font-normal">(domains fetched automatically)</span></Label><Input placeholder="https://big.oisd.nl/domains" value={newSource} onChange={(e) => setNewSource(e.target.value)} className="font-mono text-xs" /></div>
+              {newSource ? (
+                <p className="text-xs text-muted-foreground">Domains will be fetched from the URL. The textarea below is optional for manual additions.</p>
+              ) : null}
+              <div className="space-y-2"><Label>Manual Domains <span className="text-muted-foreground font-normal">(optional if URL is set)</span></Label><Textarea rows={8} placeholder={"ad.example.com\ntracker.example.net"} value={newEntries} onChange={(e) => setNewEntries(e.target.value)} className="font-mono text-xs" /></div>
             </div>
             <DialogFooter>
               <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
