@@ -1,36 +1,51 @@
 import { NextResponse } from "next/server";
+import dgram from "node:dgram";
+import * as dnsPacket from "dns-packet";
 
 export async function GET() {
   try {
-    const res = await fetch(
-      `http://127.0.0.1:5353/?XTransformPort=5353`,
-      { signal: AbortSignal.timeout(2000) }
-    ).catch(() => null);
+    const sock = dgram.createSocket("udp4");
+    const running = await new Promise<boolean>((resolve) => {
+      const timeout = setTimeout(() => {
+        sock.close();
+        resolve(false);
+      }, 2000);
 
-    // If we get any response at all, the port is open (DNS doesn't speak HTTP,
-    // but a connection attempt to an open port won't fail with ECONNREFUSED)
-    // Better: check if the process is running
-    const { execSync } = require("child_process");
-    let running = false;
-    let pid = "";
+      sock.once("message", () => {
+        clearTimeout(timeout);
+        sock.close();
+        resolve(true);
+      });
 
-    try {
-      const out = execSync("pgrep -f 'bastion-dns\\|dns-resolver'").toString().trim();
-      if (out) {
-        running = true;
-        pid = out.split("\n")[0];
-      }
-    } catch {
-      running = false;
-    }
+      sock.once("error", () => {
+        clearTimeout(timeout);
+        sock.close();
+        resolve(false);
+      });
+
+      const query = dnsPacket.encode({
+        type: "query",
+        id: Math.floor(Math.random() * 65535),
+        flags: dnsPacket.RECURSION_DESIRED,
+        questions: [{ name: "bastion-healthcheck.local", type: "A", class: "IN" }],
+      });
+
+      sock.send(query, 53, "127.0.0.1", (err) => {
+        if (err) {
+          clearTimeout(timeout);
+          sock.close();
+          resolve(false);
+        }
+      });
+    });
 
     return NextResponse.json({
       running,
-      pid,
-      port: 5353,
+      pid: null,
+      port: 53,
       status: running ? "active" : "stopped",
     });
   } catch {
-    return NextResponse.json({ running: false, pid: null, port: 5353, status: "unknown" });
+    return NextResponse.json({ running: false, pid: null, port: 53, status: "unknown" });
   }
 }
