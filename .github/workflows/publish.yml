@@ -1,61 +1,30 @@
 name: Publish to npm
 
 on:
-  push:
-    branches: [main]
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
 
-      - name: Calculate version bump
-        id: version
-        run: |
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$LAST_TAG" ]; then
-            echo "bump=major" >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          STATS=$(git diff --shortstat "$LAST_TAG" HEAD)
-          INSERTIONS=$(echo "$STATS" | grep -oP '\d+(?= insertion)' || echo 0)
-          DELETIONS=$(echo "$STATS" | grep -oP '\d+(?= deletion)' || echo 0)
-          TOTAL=$(( INSERTIONS + DELETIONS ))
-          echo "lines=$TOTAL" >> $GITHUB_OUTPUT
-          if [ "$TOTAL" -lt 5000 ]; then
-            echo "bump=minor" >> $GITHUB_OUTPUT
-          else
-            echo "bump=major" >> $GITHUB_OUTPUT
-          fi
-
       - run: npm ci
 
       - run: npx prisma generate
 
       - run: npm run build
-
-      - name: Bump version and tag
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          npm version ${{ steps.version.outputs.bump }} -m "v%s"
-
-      - run: git push --follow-tags
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - run: npm publish --provenance --access public
         env:
