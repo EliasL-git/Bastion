@@ -9,22 +9,18 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
-
-      - name: Sync version from git tag
-        run: |
-          TAG=${GITHUB_REF#refs/tags/}
-          VER=${TAG#v}
-          npm version $VER --no-git-tag-version --allow-same-version
 
       - run: npm ci
 
@@ -32,6 +28,25 @@ jobs:
 
       - run: npm run build
 
+      - name: Sync version from git tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          VER=${TAG#v}
+          npm version $VER --no-git-tag-version --allow-same-version
+
       - run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Commit updated package.json to main
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add package.json
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Bump version to $(node -p "require('./package.json').version")"
+          git fetch origin main
+          git rebase origin/main
+          git push origin HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
