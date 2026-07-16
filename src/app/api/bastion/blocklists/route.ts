@@ -1,3 +1,4 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -25,6 +26,7 @@ async function fetchUrl(url: string): Promise<string | null> {
 }
 
 export async function GET() {
+  const auth = await requireAuth(); if (!auth.ok) return auth.response;
   const lists = await db.blocklist.findMany({
     orderBy: { createdAt: "asc" },
     select: {
@@ -48,6 +50,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const auth = await requireAuth(req); if (!auth.ok) return auth.response;
   const body = await req.json();
   const { name, source, entries } = body;
 

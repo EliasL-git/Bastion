@@ -1,7 +1,9 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const auth = await requireAuth(); if (!auth.ok) return auth.response;
   const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const topBlocked = await db.$queryRaw<Array<{ domain: string; _count: { id: number } }>>`

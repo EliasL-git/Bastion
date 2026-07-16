@@ -1,7 +1,9 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET() {
+  const auth = await requireAuth(); if (!auth.ok) return auth.response;
   const caCert = await db.setting.findUnique({ where: { key: "ca_cert" } });
   if (!caCert) {
     return NextResponse.json({ error: "No CA generated yet" }, { status: 404 });

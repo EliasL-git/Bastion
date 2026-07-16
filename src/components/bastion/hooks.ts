@@ -7,6 +7,12 @@ import type { Stats, QueryEntry, BlocklistEntry, AllowlistEntry, ResolverStatus,
 
 async function json<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(url, init);
+  if (res.status === 401) {
+    await fetch("/api/bastion/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+    // never resolves — keeps TS happy
+    return new Promise(() => {});
+  }
   if (!res.ok) throw new Error(`Fetch failed: ${res.status} ${res.statusText}`);
   return res.json();
 }

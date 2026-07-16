@@ -59,6 +59,7 @@ export interface ResolverStatus {
   pid: string | null;
   port: number;
   status: string;
+  lanIp: string;
 }
 
 // ── Block Page ──

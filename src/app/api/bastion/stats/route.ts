@@ -1,7 +1,9 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req); if (!auth.ok) return auth.response;
   const { searchParams } = new URL(req.url);
   const range = searchParams.get("range") ?? "24h";
   const rangeHours = range === "7d" ? 168 : 24;

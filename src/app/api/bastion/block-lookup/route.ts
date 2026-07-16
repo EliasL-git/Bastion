@@ -1,11 +1,9 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
-/**
- * Look up whether a domain is blocked and return full block-page info.
- * GET /api/bastion/block-lookup?domain=example.com
- */
 export async function GET(req: NextRequest) {
+  const auth = await requireAuth(req); if (!auth.ok) return auth.response;
   const { searchParams } = new URL(req.url);
   const domain = searchParams.get("domain");
 

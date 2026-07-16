@@ -172,14 +172,13 @@ export function SettingsTab({
                 </Badge>
               </div>
               <div className="rounded-lg bg-muted/50 p-3 text-xs space-y-1.5">
-                <p className="text-muted-foreground">To use Bastion as your DNS server:</p>
-                <code className="block font-mono bg-background rounded px-2 py-1">
-                  bun run mini-services/dns-resolver/index.ts
-                </code>
-                <p className="text-muted-foreground pt-1">
-                  Then point your device/router DNS to this machine on port{" "}
-                  <span className="font-mono font-medium text-foreground">5353</span>.
-                  Blocked domains return <span className="font-mono">0.0.0.0</span>, allowed queries
+                <p className="text-muted-foreground">The DNS resolver starts automatically with <code className="font-mono text-foreground">npm run dev</code>.</p>
+                <p className="text-muted-foreground">
+                  Point your device/router DNS to{" "}
+                  <span className="font-mono font-medium text-foreground">{resolver?.lanIp || "this machine"}</span>{" "}
+                  on port{" "}
+                  <span className="font-mono font-medium text-foreground">53</span>.
+                  Blocked domains redirect to the block page, allowed queries
                   forward to <span className="font-mono">{upstreamDns.split(",")[0]}</span>.
                 </p>
                 <p className="text-muted-foreground">

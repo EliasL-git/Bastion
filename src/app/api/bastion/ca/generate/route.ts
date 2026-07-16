@@ -1,8 +1,10 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 import forge from "node-forge";
 
 export async function POST() {
+  const auth = await requireAuth(); if (!auth.ok) return auth.response;
   try {
     const keys = forge.pki.rsa.generateKeyPair(4096);
     const cert = forge.pki.createCertificate();

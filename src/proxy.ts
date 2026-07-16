@@ -1,18 +1,20 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
+const publicPaths = [
+  "/login",
+  "/change-password",
+  "/blocked",
+  "/api/bastion/auth/login",
+  "/api/bastion/auth/logout",
+  "/api/bastion/settings",
+  "/api/bastion/ca/status",
+  "/_next",
+  "/favicon",
+];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  const publicPaths = [
-    "/login",
-    "/change-password",
-    "/blocked",
-    "/api/bastion/auth/login",
-    "/api/bastion/auth/logout",
-    "/_next",
-    "/favicon",
-  ];
 
   if (publicPaths.some((p) => pathname === p || pathname.startsWith(p + "/"))) {
     return NextResponse.next();

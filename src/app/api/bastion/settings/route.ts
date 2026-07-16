@@ -1,3 +1,4 @@
+import { requireAuth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { NextResponse } from "next/server";
 
@@ -9,6 +10,7 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
+  const auth = await requireAuth(req); if (!auth.ok) return auth.response;
   const body = await req.json();
   const { key, value } = body;
   if (!key) return NextResponse.json({ error: "key required" }, { status: 400 });

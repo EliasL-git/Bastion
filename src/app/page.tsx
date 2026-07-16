@@ -29,7 +29,12 @@ export default function BastionDashboard() {
     let mounted = true;
     const init = async () => {
       try {
-        await fetch("/api/bastion/seed", { method: "POST" });
+        const res = await fetch("/api/bastion/seed", { method: "POST" });
+        if (res.status === 401) {
+          await fetch("/api/bastion/auth/logout", { method: "POST" });
+          window.location.href = "/login";
+          return;
+        }
       } catch { /* ignore */ }
       if (mounted) setInitialLoading(false);
     };

@@ -1,51 +1,38 @@
+import { requireAuth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import dgram from "node:dgram";
-import * as dnsPacket from "dns-packet";
+import { execSync } from "node:child_process";
+import { networkInterfaces } from "node:os";
 
 export async function GET() {
+  const auth = await requireAuth(); if (!auth.ok) return auth.response;
+  let pid: number | null = null;
   try {
-    const sock = dgram.createSocket("udp4");
-    const running = await new Promise<boolean>((resolve) => {
-      const timeout = setTimeout(() => {
-        sock.close();
-        resolve(false);
-      }, 2000);
+    const output = execSync(
+      `netstat -ano | findstr "UDP" | findstr ":53 "`,
+      { encoding: "utf8", timeout: 3000 },
+    );
+    for (const line of output.trim().split("\n")) {
+      const parts = line.trim().split(/\s+/);
+      const found = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(found)) { pid = found; break; }
+    }
+  } catch {}
 
-      sock.once("message", () => {
-        clearTimeout(timeout);
-        sock.close();
-        resolve(true);
-      });
+  const running = pid !== null;
 
-      sock.once("error", () => {
-        clearTimeout(timeout);
-        sock.close();
-        resolve(false);
-      });
-
-      const query = dnsPacket.encode({
-        type: "query",
-        id: Math.floor(Math.random() * 65535),
-        flags: dnsPacket.RECURSION_DESIRED,
-        questions: [{ name: "bastion-healthcheck.local", type: "A", class: "IN" }],
-      });
-
-      sock.send(query, 53, "127.0.0.1", (err) => {
-        if (err) {
-          clearTimeout(timeout);
-          sock.close();
-          resolve(false);
-        }
-      });
-    });
-
-    return NextResponse.json({
-      running,
-      pid: null,
-      port: 53,
-      status: running ? "active" : "stopped",
-    });
-  } catch {
-    return NextResponse.json({ running: false, pid: null, port: 53, status: "unknown" });
+  let lanIp = "127.0.0.1";
+  for (const name of Object.keys(networkInterfaces())) {
+    for (const net of networkInterfaces()[name] ?? []) {
+      if (net.family === "IPv4" && !net.internal) { lanIp = net.address; break; }
+    }
+    if (lanIp !== "127.0.0.1") break;
   }
+
+  return NextResponse.json({
+    running,
+    pid,
+    port: 53,
+    status: running ? "active" : "stopped",
+    lanIp,
+  });
 }
