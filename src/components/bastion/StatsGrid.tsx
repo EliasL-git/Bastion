@@ -23,21 +23,21 @@ export function StatsGrid({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           title="Total Queries (24h)"
-          value={formatNumber(stats.totalQueries24h)}
+          value={formatNumber(stats.totalQueries)}
           sub={`${formatNumber(stats.queriesLastHour)}/hour`}
           icon={Activity}
           accent="text-blue-500"
         />
         <StatCard
           title="Blocked"
-          value={formatNumber(stats.blocked24h)}
+          value={formatNumber(stats.blockedCount)}
           sub={`${stats.blockPercent}% of traffic`}
           icon={Ban}
           accent="text-red-500"
         />
         <StatCard
           title="Allowed"
-          value={formatNumber(stats.allowed24h)}
+          value={formatNumber(stats.allowedCount)}
           sub={`Through ${settings.upstream_dns ?? "DNS"}`}
           icon={CheckCircle2}
           accent="text-emerald-500"

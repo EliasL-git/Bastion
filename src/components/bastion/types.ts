@@ -9,9 +9,9 @@ export interface ChartPoint {
 // ── Stats ──
 
 export interface Stats {
-  totalQueries24h: number;
-  blocked24h: number;
-  allowed24h: number;
+  totalQueries: number;
+  blockedCount: number;
+  allowedCount: number;
   queriesLastHour: number;
   blockPercent: number;
   enabledLists: number;

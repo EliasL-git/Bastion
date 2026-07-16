@@ -4,19 +4,15 @@ import {
   Shield, Activity, Ban, CheckCircle2, Radio,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { RefreshCw } from "lucide-react";
 import type { ResolverStatus, Stats } from "./types";
 
 export function DashboardHeader({
   resolver,
   stats,
-  onRefresh,
 }: {
   resolver: ResolverStatus | null;
   stats: Stats | null;
-  onRefresh: () => void;
 }) {
   return (
     <header className="border-b border-border/50 bg-card/50 backdrop-blur-md sticky top-0 z-50">
@@ -56,15 +52,6 @@ export function DashboardHeader({
               </span>
             </div>
           )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-1.5 text-xs"
-            onClick={onRefresh}
-          >
-            <RefreshCw className="h-3 w-3" />
-            <span className="hidden sm:inline">Refresh</span>
-          </Button>
         </div>
       </div>
     </header>
