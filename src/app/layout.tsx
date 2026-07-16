@@ -14,21 +14,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bastion - DNS Sinkhole Dashboard",
-  description: "Network-wide ad blocking and DNS query monitoring dashboard. Block trackers, malware, and unwanted content at the DNS level.",
-  keywords: ["DNS", "sinkhole", "ad blocking", "network", "privacy", "Pi-Hole alternative"],
+  title: "Bastion — DNS Sinkhole Dashboard",
+  description:
+    "Lightweight DNS sinkhole dashboard with real-time query logging, block/allow lists, and upstream forwarding. Network-wide ad blocking.",
+  keywords: [
+    "Bastion",
+    "DNS",
+    "sinkhole",
+    "ad blocking",
+    "network-wide",
+    "privacy",
+    "DNS filtering",
+  ],
   icons: {
     icon: "/logo.svg",
   },
   openGraph: {
-    title: "Bastion - DNS Sinkhole Dashboard",
+    title: "Bastion — DNS Sinkhole Dashboard",
     description: "Network-wide ad blocking and DNS query monitoring",
     siteName: "Bastion",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bastion - DNS Sinkhole Dashboard",
+    title: "Bastion — DNS Sinkhole Dashboard",
     description: "Network-wide ad blocking and DNS query monitoring",
   },
 };
