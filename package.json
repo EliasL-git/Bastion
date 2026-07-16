@@ -1,6 +1,6 @@
 {
   "name": "bastion-dns",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Lightweight DNS sinkhole dashboard with real-time query logging, block/allow lists, and upstream forwarding",
   "repository": {
     "type": "git",
