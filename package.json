@@ -2,6 +2,9 @@
   "name": "bastion-dns",
   "version": "1.0.0",
   "description": "Lightweight DNS sinkhole dashboard with real-time query logging, block/allow lists, and upstream forwarding",
+  "bin": {
+    "bastion-dns": "./cli.mjs"
+  },
   "scripts": {
     "dev": "node scripts/start.mjs",
     "dev:next": "next dev -p 4455",
