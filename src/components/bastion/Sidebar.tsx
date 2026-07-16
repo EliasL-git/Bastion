@@ -6,15 +6,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { Stats, ResolverStatus } from "./types";
-
-const NAV_ITEMS = [
-  { id: "overview", label: "Overview", icon: TrendingUp },
-  { id: "queries", label: "Query Log", icon: Clock },
-  { id: "blocklists", label: "Blocklists", icon: ShieldOff },
-  { id: "allowlist", label: "Allowlist", icon: Eye },
-  { id: "settings", label: "Settings", icon: Settings },
-] as const;
+import type { Stats, ResolverStatus, SettingsMap } from "./types";
 
 export function Sidebar({
   activeTab,
@@ -22,13 +14,28 @@ export function Sidebar({
   onRefresh,
   stats,
   resolver,
+  settings,
 }: {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onRefresh: () => void;
   stats: Stats | null;
   resolver: ResolverStatus | null;
+  settings: SettingsMap;
 }) {
+  // Component visibility (default on if not set)
+  const compQueryLog   = settings.comp_query_log !== "false";
+  const compBlocklists = settings.comp_blocklists !== "false";
+  const compAllowlist  = settings.comp_allowlist !== "false";
+
+  const NAV_ITEMS = [
+    { id: "overview",   label: "Overview",   icon: TrendingUp },
+    { id: "queries",    label: "Query Log",  icon: Clock,     hidden: !compQueryLog },
+    { id: "blocklists", label: "Blocklists", icon: ShieldOff, hidden: !compBlocklists },
+    { id: "allowlist",  label: "Allowlist",  icon: Eye,       hidden: !compAllowlist },
+    { id: "settings",   label: "Settings",   icon: Settings },
+  ] as const;
+
   return (
     <aside className="w-56 shrink-0 border-r border-border/50 bg-card/50 backdrop-blur-sm flex flex-col">
       {/* Logo / Brand */}
@@ -39,22 +46,24 @@ export function Sidebar({
 
       {/* Nav items */}
       <nav className="flex-1 py-3 space-y-1 px-2">
-        {NAV_ITEMS.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onTabChange(item.id)}
-            className={cn(
-              "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
-              "hover:bg-accent hover:text-accent-foreground",
-              activeTab === item.id
-                ? "bg-accent text-accent-foreground font-medium"
-                : "text-muted-foreground"
-            )}
-          >
-            <item.icon className="h-4 w-4 shrink-0" />
-            {item.label}
-          </button>
-        ))}
+        {NAV_ITEMS
+          .filter((item) => !("hidden" in item && item.hidden))
+          .map((item) => (
+            <button
+              key={item.id}
+              onClick={() => onTabChange(item.id)}
+              className={cn(
+                "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
+                "hover:bg-accent hover:text-accent-foreground",
+                activeTab === item.id
+                  ? "bg-accent text-accent-foreground font-medium"
+                  : "text-muted-foreground"
+              )}
+            >
+              <item.icon className="h-4 w-4 shrink-0" />
+              {item.label}
+            </button>
+          ))}
       </nav>
 
       {/* Bottom area: refresh + resolver status */}

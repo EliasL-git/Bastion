@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  TrendingUp, Clock, ShieldOff, Eye, Settings,
   Shield,
 } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,7 +20,7 @@ import { useStats, useTopDomains, useSettings, useResolver } from "@/components/
 export default function BastionDashboard() {
   const { stats, loading: statsLoading, refresh: refreshStats } = useStats();
   const { topDomains, refresh: refreshTop } = useTopDomains();
-  const { settings, refresh: refreshSettings, toggle } = useSettings();
+  const { settings, refresh: refreshSettings, toggle, updateSetting } = useSettings();
   const { resolver, refresh: refreshResolver } = useResolver();
   const [activeTab, setActiveTab] = useState("overview");
   const [initialLoading, setInitialLoading] = useState(true);
@@ -47,6 +46,24 @@ export default function BastionDashboard() {
 
   const ready = !initialLoading && stats !== null;
 
+  // Component visibility (default on)
+  const compDnsChart   = settings.comp_dns_chart !== "false";
+  const compTopDomains = settings.comp_top_domains !== "false";
+  const compQueryLog   = settings.comp_query_log !== "false";
+  const compBlocklists = settings.comp_blocklists !== "false";
+  const compAllowlist  = settings.comp_allowlist !== "false";
+
+  // If the active tab is for a disabled component, switch to overview
+  useEffect(() => {
+    if (
+      (activeTab === "queries" && !compQueryLog) ||
+      (activeTab === "blocklists" && !compBlocklists) ||
+      (activeTab === "allowlist" && !compAllowlist)
+    ) {
+      setActiveTab("overview");
+    }
+  }, [activeTab, compQueryLog, compBlocklists, compAllowlist]);
+
   if (!ready) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -71,6 +88,7 @@ export default function BastionDashboard() {
             onRefresh={handleRefresh}
             stats={stats}
             resolver={resolver}
+            settings={settings}
           />
 
           {/* Main content */}
@@ -79,16 +97,27 @@ export default function BastionDashboard() {
 
             {activeTab === "overview" && (
               <div className="space-y-6">
-                <DnsChart stats={stats} />
-                <TopDomains data={topDomains} />
+                {compDnsChart && <DnsChart stats={stats} />}
+                {compTopDomains && <TopDomains data={topDomains} />}
+                {!compDnsChart && !compTopDomains && (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    <p>All overview components are disabled.</p>
+                    <p className="text-xs mt-1">Enable them in Settings → Components.</p>
+                  </div>
+                )}
               </div>
             )}
 
-            {activeTab === "queries" && <QueryLog />}
-            {activeTab === "blocklists" && <BlocklistsTab />}
-            {activeTab === "allowlist" && <AllowlistTab />}
+            {activeTab === "queries" && compQueryLog && <QueryLog />}
+            {activeTab === "blocklists" && compBlocklists && <BlocklistsTab />}
+            {activeTab === "allowlist" && compAllowlist && <AllowlistTab />}
             {activeTab === "settings" && (
-              <SettingsTab settings={settings} onToggle={toggle} resolver={resolver} />
+              <SettingsTab
+                settings={settings}
+                onToggle={toggle}
+                resolver={resolver}
+                updateSetting={updateSetting}
+              />
             )}
           </main>
         </div>
