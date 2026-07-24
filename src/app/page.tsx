@@ -1,9 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Shield,
-} from "lucide-react";
+import { Shield } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { DashboardHeader } from "@/components/bastion/Header";
 import { DashboardFooter } from "@/components/bastion/Footer";
@@ -18,7 +16,7 @@ import { Sidebar } from "@/components/bastion/Sidebar";
 import { useStats, useTopDomains, useSettings, useResolver } from "@/components/bastion/hooks";
 
 export default function BastionDashboard() {
-  const { stats, loading: statsLoading, refresh: refreshStats } = useStats();
+  const { stats, refresh: refreshStats } = useStats();
   const { topDomains, refresh: refreshTop } = useTopDomains();
   const { settings, refresh: refreshSettings, toggle, updateSetting } = useSettings();
   const { resolver, refresh: refreshResolver } = useResolver();
@@ -43,37 +41,31 @@ export default function BastionDashboard() {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    refreshStats();
-    refreshTop();
-    refreshSettings();
-    refreshResolver();
+    refreshStats(); refreshTop(); refreshSettings(); refreshResolver();
   }, [refreshStats, refreshTop, refreshSettings, refreshResolver]);
 
   const ready = !initialLoading && stats !== null;
-
-  // Component visibility (default on)
-  const compDnsChart   = settings.comp_dns_chart !== "false";
+  const compDnsChart = settings.comp_dns_chart !== "false";
   const compTopDomains = settings.comp_top_domains !== "false";
-  const compQueryLog   = settings.comp_query_log !== "false";
+  const compQueryLog = settings.comp_query_log !== "false";
   const compBlocklists = settings.comp_blocklists !== "false";
-  const compAllowlist  = settings.comp_allowlist !== "false";
+  const compAllowlist = settings.comp_allowlist !== "false";
 
-  // If the active tab is for a disabled component, switch to overview
   useEffect(() => {
     if (
       (activeTab === "queries" && !compQueryLog) ||
       (activeTab === "blocklists" && !compBlocklists) ||
       (activeTab === "allowlist" && !compAllowlist)
-    ) {
-      setActiveTab("overview");
-    }
+    ) setActiveTab("overview");
   }, [activeTab, compQueryLog, compBlocklists, compAllowlist]);
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <Shield className="h-8 w-8 mx-auto text-primary animate-pulse" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 shadow-glow">
+            <Shield className="h-6 w-6 animate-pulse text-primary" />
+          </div>
           <p className="text-sm text-muted-foreground">Loading Bastion...</p>
         </div>
       </div>
@@ -82,51 +74,32 @@ export default function BastionDashboard() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-background flex flex-col">
+      <div className="flex min-h-screen flex-col bg-background">
         <DashboardHeader resolver={resolver} stats={stats} />
-
         <div className="flex flex-1">
-          {/* Sidebar */}
-          <Sidebar
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            onRefresh={handleRefresh}
-            stats={stats}
-            resolver={resolver}
-            settings={settings}
-          />
-
-          {/* Main content */}
-          <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-6 space-y-6 min-w-0">
-            <StatsGrid stats={stats} settings={settings} />
-
-            {activeTab === "overview" && (
-              <div className="space-y-6">
-                {compDnsChart && <DnsChart stats={stats} />}
-                {compTopDomains && <TopDomains data={topDomains} />}
-                {!compDnsChart && !compTopDomains && (
-                  <div className="text-center py-8 text-sm text-muted-foreground">
-                    <p>All overview components are disabled.</p>
-                    <p className="text-xs mt-1">Enable them in Settings → Components.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "queries" && compQueryLog && <QueryLog />}
-            {activeTab === "blocklists" && compBlocklists && <BlocklistsTab />}
-            {activeTab === "allowlist" && compAllowlist && <AllowlistTab />}
-            {activeTab === "settings" && (
-              <SettingsTab
-                settings={settings}
-                onToggle={toggle}
-                resolver={resolver}
-                updateSetting={updateSetting}
-              />
-            )}
+          <Sidebar activeTab={activeTab} onTabChange={setActiveTab} onRefresh={handleRefresh} stats={stats} resolver={resolver} settings={settings} />
+          <main className="min-w-0 flex-1 bg-grid px-4 py-5 sm:px-6">
+            <div className="mx-auto max-w-6xl space-y-5">
+              <StatsGrid stats={stats} settings={settings} />
+              {activeTab === "overview" && (
+                <div className="space-y-5">
+                  {compDnsChart && <DnsChart stats={stats} />}
+                  {compTopDomains && <TopDomains data={topDomains} />}
+                  {!compDnsChart && !compTopDomains && (
+                    <div className="rounded-xl border border-border/60 bg-card/60 py-10 text-center text-sm text-muted-foreground">
+                      <p>All overview components are disabled.</p>
+                      <p className="mt-1 text-xs">Enable them in Settings → Components.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+              {activeTab === "queries" && compQueryLog && <QueryLog />}
+              {activeTab === "blocklists" && compBlocklists && <BlocklistsTab />}
+              {activeTab === "allowlist" && compAllowlist && <AllowlistTab />}
+              {activeTab === "settings" && <SettingsTab settings={settings} onToggle={toggle} resolver={resolver} updateSetting={updateSetting} />}
+            </div>
           </main>
         </div>
-
         <DashboardFooter />
       </div>
     </TooltipProvider>
